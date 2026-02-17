@@ -62,19 +62,42 @@
 
 ;;; Packages ----
 
-(require 'package)
+;;; package.el
+;; (require 'package)
+;; (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
+;; (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/")) ;; ELPA and NonGNU ELPA are default in Emacs28
+;; (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3") ;; w/o this Emacs freezes when refreshing ELPA
+;; (package-initialize)
+;; (setq package-enable-at-startup nil)
 
-(setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
+;; straight.el
 
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/")) ;; ELPA and NonGNU ELPA are default in Emacs28
+(setq
+ package-enable-at-startup nil
+ straight-use-package-by-default t
+ )
 
-(setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3") ;; w/o this Emacs freezes when refreshing ELPA
 
-(package-initialize)
-(setq package-enable-at-startup nil)
+;; bootstrap code
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name
+        "straight/repos/straight.el/bootstrap.el"
+        (or (bound-and-true-p straight-base-dir)
+            user-emacs-directory)))
+      (bootstrap-version 7))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
+;;; use-package
 (require 'use-package)
-(setq use-package-always-ensure t)
+;; (setq use-package-always-ensure t)
 (setq use-package-verbose nil)
 
 

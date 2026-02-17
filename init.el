@@ -80,33 +80,48 @@
   ;; useful beyond Corfu.
   (read-extended-command-predicate #'command-completion-default-include-p))
 
+(use-package tab-bar
+  :bind (("C-<right>" . tab-next)
+		 ("C-<left>" . tab-previous)))
 
-(use-package ef-themes
-  :init
-  ;; This makes the Modus commands listed below consider only the Ef
-  ;; themes.  For an alternative that includes Modus and all
-  ;; derivative themes (like Ef), enable the
-  ;; `modus-themes-include-derivatives-mode' instead.  The manual of
-  ;; the Ef themes has a section that explains all the possibilities:
-  ;;
-  ;; - Evaluate `(info "(ef-themes) Working with other Modus themes or taking over Modus")'
-  ;; - Visit <https://protesilaos.com/emacs/ef-themes#h:6585235a-5219-4f78-9dd5-6a64d87d1b6e>
-  (ef-themes-take-over-modus-themes-mode 1)
-  :bind
-  (("<f5>" . modus-themes-rotate)
-   ("C-<f5>" . modus-themes-select)
-   ("M-<f5>" . modus-themes-load-random))
+;; (use-package ef-themes
+;;   :init
+;;   ;; This makes the Modus commands listed below consider only the Ef
+;;   ;; themes.  For an alternative that includes Modus and all
+;;   ;; derivative themes (like Ef), enable the
+;;   ;; `modus-themes-include-derivatives-mode' instead.  The manual of
+;;   ;; the Ef themes has a section that explains all the possibilities:
+;;   ;;
+;;   ;; - Evaluate `(info "(ef-themes) Working with other Modus themes or taking over Modus")'
+;;   ;; - Visit <https://protesilaos.com/emacs/ef-themes#h:6585235a-5219-4f78-9dd5-6a64d87d1b6e>
+;;   (ef-themes-take-over-modus-themes-mode 1)
+;;   :bind
+;;   (("<f5>" . modus-themes-rotate)
+;;    ("C-<f5>" . modus-themes-select)
+;;    ("M-<f5>" . modus-themes-load-random))
+;;   :config
+;;   ;; All customisations here.
+;;   (setq modus-themes-mixed-fonts t)
+;;   (setq modus-themes-italic-constructs t)
+
+;;   ;; Finally, load your theme of choice (or a random one with
+;;   ;; `modus-themes-load-random', `modus-themes-load-random-dark',
+;;   ;; `modus-themes-load-random-light').
+;;   ;; (modus-themes-load-theme 'ef-elea-dark)
+;;   (modus-themes-load-theme 'ef-owl)
+;;   )
+
+;;; For packaged versions which must use `require'.
+(use-package modus-themes
   :config
-  ;; All customisations here.
-  (setq modus-themes-mixed-fonts t)
-  (setq modus-themes-italic-constructs t)
+  ;; Add all your customizations prior to loading the themes
+  (setq modus-themes-italic-constructs t
+        modus-themes-bold-constructs nil)
 
-  ;; Finally, load your theme of choice (or a random one with
-  ;; `modus-themes-load-random', `modus-themes-load-random-dark',
-  ;; `modus-themes-load-random-light').
-  ;; (modus-themes-load-theme 'ef-elea-dark)
-  (modus-themes-load-theme 'ef-owl)
-  )
+  ;; Load the theme of your choice.
+  (modus-themes-load-theme 'modus-vivendi)
+
+  (define-key global-map (kbd "<f5>") #'modus-themes-toggle))
 
 ;; Hide minor modes
 (use-package minions
@@ -116,7 +131,7 @@
 (use-package tree-sitter
   :init
   (global-tree-sitter-mode)
-  :hook (tree-sitter-after-on-hook . tree-sitter-hl-mode))
+  :hook (prog-mode . tree-sitter-hl-mode))
 (use-package tree-sitter-langs)
 
 (use-package undo-tree  ; Enable undo-tree, sane undo/redo behavior
@@ -139,7 +154,7 @@
 (use-package crux
   :bind (
 		 ("C-k" . crux-smart-kill-line)
-		 ("M-k" . crux-kill-whole-line)
+		 ("C-K" . crux-kill-whole-line)
 		 ("M-RET" . crux-smart-open-line-above)
 		 ("C-c f" . crux-recentf-find-file)
 		 ("C-c D" . crux-delete-current-file-and-buffer)
@@ -177,7 +192,6 @@
 ;;; Completion ----
 
 (use-package corfu
-  :ensure t
   :custom
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
@@ -203,7 +217,6 @@
   )
 
 (use-package orderless
-  :ensure t
   :custom
   ;; (orderless-style-dispatchers '(orderless-affix-dispatch))
   ;; (orderless-component-separator #'orderless-escapable-split-on-space)
@@ -223,40 +236,42 @@
 
 ;;; LSP and errors ----
 (use-package eglot
-  :ensure nil
   :hook
   ((c-mode . eglot-ensure)
    (rustic-mode . eglot-ensure)
    (python-mode . eglot-ensure))
    (LaTeX-mode . eglot-ensure))
-  :config
-  (define-key eglot-mode-map (kbd "C-c r") 'eglot-rename)
-  (define-key eglot-mode-map (kbd "C-c o") 'eglot-code-action-organize-imports)
-  (define-key eglot-mode-map (kbd "C-c h") 'eldoc)
- )
+ ;;  (define-key eglot-mode-map (kbd "C-c r") 'eglot-rename)
+ ;;  (define-key eglot-mode-map (kbd "C-c o") 'eglot-code-action-organize-imports)
+ ;;  (define-key eglot-mode-map (kbd "C-c h") 'eldoc)
+ ;; )
 
 (use-package flycheck
   :config
   (global-flycheck-mode))
 
-;;; Languages ----
+(use-package git-gutter
+  :config
+  (global-git-gutter-mode +1))
 
+;;; Languages ----
 (use-package tex
-  :ensure auctex
+  :straight auctex
   :config
   (setq TeX-engine-alist '((default
-                          "Tectonic"
-                          "tectonic -X compile -f plain %T"
-                          "tectonic -X watch"
-                          nil))
-		LaTeX-command-style '(("" "%(latex)")))
+                            "Tectonic"
+                            "tectonic -X compile -f plain %T"
+                            "tectonic -X watch"
+                            nil))
+        LaTeX-command-style '(("" "%(latex)"))
         TeX-process-asynchronous t
         TeX-check-TeX nil
-        TeX-engine 'default
-		(let ((tex-list (assoc "TeX" TeX-command-list))
-			  (latex-list (assoc "LaTeX" TeX-command-list)))
-		  (setf (cadr tex-list) "%(tex)"
-				(cadr latex-list) "%l")))
+        TeX-engine 'default)
+
+  (let ((tex-list   (assoc "TeX"   TeX-command-list))
+        (latex-list (assoc "LaTeX" TeX-command-list)))
+    (setf (cadr tex-list)   "%(tex)"
+          (cadr latex-list) "%l")))
 
 (use-package markdown-mode
   :mode ("README\\.md\\'" . gfm-mode)
