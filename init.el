@@ -33,23 +33,31 @@
 ;;;; Fonts ----
 
 (set-face-attribute 'default nil
-                    :family "Fira Code"
-                    :height 150
+                    ;; :family "Fira Code"
+					;; :height 150
+					:family "Iosevka"
+					:height 170
                     :weight 'normal
                     :width 'normal)
 
 (set-face-attribute 'fixed-pitch nil
-                    :family "Fira Code"
-                    :height 150
+                    ;; :family "Fira Code"
+                    ;; :height 150
+                    :family "Iosevka"
+                    :height 170
                     :weight 'normal
                     :width 'normal)
 
 (set-face-attribute 'variable-pitch nil
-                    :family "Fira Code"
-                    ;; :family "Open Sans"
-                    :height 150
+					;; :family "Open Sans"
+                    ;; :family "Fira Code"
+					;; :height 150
+					:family "Iosevka"
+                    :height 170
                     :weight 'normal
                     :width 'normal)
+;;;; Mode Line ---
+(display-time)
 
 ;;;; Agenda and calendar ---
 
@@ -119,7 +127,7 @@
         modus-themes-bold-constructs nil)
 
   ;; Load the theme of your choice.
-  (modus-themes-load-theme 'modus-vivendi)
+  (modus-themes-load-theme 'modus-operandi-tinted)
 
   (define-key global-map (kbd "<f5>") #'modus-themes-toggle))
 
@@ -155,17 +163,19 @@
   :bind (
 		 ("C-k" . crux-smart-kill-line)
 		 ("C-K" . crux-kill-whole-line)
-		 ("M-RET" . crux-smart-open-line-above)
+		 ("C-M-<return>" . crux-smart-open-line-above)
+		 ("M-o" . crux-smart-open-line)
 		 ("C-c f" . crux-recentf-find-file)
 		 ("C-c D" . crux-delete-current-file-and-buffer)
 		 ("C-c d" . crux-duplicate-current-line-or-region)
 		 ("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
 		 ("C-c r" . crux-rename-file-and-buffer)
-		 ("C-c t" . crux-visit-term-buffer) ; visit ansi-term
+		 ("C-c t" . vterm) ; visit ansi-term
 		 ("C-c k" . crux-kill-other-buffers) ; Kill all open buffers except the one you're currently in
 		 ("C-c I" . crux-find-user-init-file) ; open init.el
 		 ("C-c J" . crux-top-join-line) ; Same as Vim's Shif-J
-		 ))
+		 )
+  )
 
 (use-package which-key
   :config
@@ -188,6 +198,22 @@
 
 (use-package magit
   :defer t)
+
+(use-package avy
+  :bind
+  ("M-j" . avy-goto-char-timer))
+
+(use-package consult
+  :bind (("C-x b" . consult-buffer)
+		 ("M-g i" . consult-imenu)))
+
+(use-package vterm)
+
+;;; Spell checking
+(use-package jinx
+  :hook (emacs-startup . global-jinx-mode)
+  :bind (("M-$" . jinx-correct)
+         ("C-M-$" . jinx-languages)))
 
 ;;; Completion ----
 
@@ -254,6 +280,126 @@
   :config
   (global-git-gutter-mode +1))
 
+;;; Presentations ---
+
+(use-package org
+  :bind ("C-c a" . org-agenda)
+  :config
+  (setq org-confirm-babel-evaluate nil
+		;; "|" separates TODO states from DONE states
+        org-todo-keywords '((sequence "TODO" "INPROG" "|" "DONE"))))
+(use-package org-modern
+  :config
+  (set-face-attribute 'org-modern-symbol nil :family "Fira Code")
+  (setq
+   ;; Edit settings
+   org-auto-align-tags nil
+   org-tags-column 0
+   org-catch-invisible-edits 'show-and-error
+   org-special-ctrl-a/e t
+   org-insert-heading-respect-content t
+
+   ;; Org styling, hide markup etc.
+   org-hide-emphasis-markers t
+   org-pretty-entities t
+   org-agenda-tags-column 0
+   org-modern-star '("●" "○" "✸" "✿")
+   org-ellipsis "…"
+
+   ;; Faces (check https://github.com/minad/org-modern/issues/273)
+   org-modern-todo-faces '(("INPROG" :background  "orange" :foreground "black"))
+   org-modern-priority-faces '((?A :background "IndianRed1" :foreground "white")
+							   (?B :background "IndianRed3" :foreground "white")
+							   (?C :background "IndianRed4" :foreground "white"))
+   )
+  (global-org-modern-mode))
+
+(use-package hide-mode-line)
+
+(defun efs/presentation-setup ()
+  ;; Hide the mode line
+  (hide-mode-line-mode 1)
+
+  ;; Display images inline
+  (org-display-inline-images) ;; Can also use org-startup-with-inline-images
+
+  ;; Scale the text.  The next line is for basic scaling:
+  (setq text-scale-mode-amount 3)
+  (text-scale-mode 1))
+
+(defun efs/presentation-end ()
+  ;; Show the mode line again
+  (hide-mode-line-mode 0)
+
+  ;; Turn off text scale mode (or use the next line if you didn't use text-scale-mode)
+  ;; (text-scale-mode 0))
+
+  ;; If you use face-remapping-alist, this clears the scaling:
+  (setq-local face-remapping-alist '((default variable-pitch default))))
+
+(use-package org-tree-slide
+  :hook ((org-tree-slide-play . efs/presentation-setup)
+         (org-tree-slide-stop . efs/presentation-end))
+  :custom
+  (org-tree-slide-slide-in-effect t)
+  (org-tree-slide-activate-message "Presentation started!")
+  (org-tree-slide-deactivate-message "Presentation finished!")
+  (org-tree-slide-header nil)
+  (org-tree-slide-breadcrumbs " > ")
+  (org-image-actual-width nil))
+
+;;; E-Mail ---
+(add-to-list 'load-path "/usr/share/emacs/site-lisp/elpa/mu4e-1.12.9")
+(use-package mu4e
+  :straight nil
+  :ensure nil ; mu4e is installed with the distro's pkg manager
+  :config
+  ;; Use experimental transient support for mu4e
+  (when (require 'mu4e-transient nil 'noerror)
+    (global-set-key (kbd "C-c m") #'mu4e-transient-menu))
+  (setq mu4e-maildir "~/.mail/outlook"
+
+        mu4e-sent-folder "/Sent Items"
+        mu4e-drafts-folder "/Drafts"
+        mu4e-trash-folder "/Deleted Items"
+
+        ;; set to t to avoid mail sync issues when using mbsync
+        mu4e-change-filenames-when-moving t
+        mu4e-update-interval (* 10 60) ; update every 10mins
+        mu4e-get-mail-command "mbsync -a"
+
+        mu4e-maildir-shortcuts '(("/Inbox" . ?i)
+                                 ("/Deleted Items" . ?t)
+                                 ("/Drafts" . ?d)
+                                 ("/Sent Items" . ?s))
+
+		mu4e-attachment-dir "~/Downloads"
+
+		mu4e-use-fancy-chars t
+		mu4e-headers-draft-mark     '("D" . "✏️")
+        mu4e-headers-flagged-mark   '("F" . "📌")
+        mu4e-headers-new-mark       '("N" . "✨")
+        mu4e-headers-passed-mark    '("P" . "❯")
+        mu4e-headers-replied-mark   '("R" . "↪️")
+        mu4e-headers-seen-mark      '("S" . "👁️‍🗨️")
+        mu4e-headers-trashed-mark   '("T" . "💀")
+        mu4e-headers-attach-mark    '("a" . "📎")
+        mu4e-headers-encrypted-mark '("x" . "🔒")
+        mu4e-headers-signed-mark    '("s" . "🔑")
+        mu4e-headers-unread-mark    '("u" . "🙈")
+        mu4e-headers-list-mark      '("l" . "🗞️")
+        mu4e-headers-personal-mark  '("p" . "👨")
+        mu4e-headers-calendar-mark  '("c" . "📅")
+
+		;; sendmail  options (not mu4e options)
+        send-mail-function 'sendmail-send-it
+        sendmail-program "/bin/msmtp"
+        user-mail-address "mikel.malagon@ehu.eus"
+        user-full-name "Mikel"
+        mail-specify-envelope-from t
+        message-sendmail-envelope-from 'header
+        mail-envelope-from 'header))
+
 ;;; Languages ----
 (use-package tex
   :straight auctex
@@ -279,23 +425,5 @@
   :bind (:map markdown-mode-map
          ("C-c C-e" . markdown-do)))
 
-(use-package org
-  :bind ("C-c a" . org-agenda))
-(use-package org-modern
-  :config
-  (set-face-attribute 'org-modern-symbol nil :family "Fira Code")
-  (setq
-   ;; Edit settings
-   org-auto-align-tags nil
-   org-tags-column 0
-   org-catch-invisible-edits 'show-and-error
-   org-special-ctrl-a/e t
-   org-insert-heading-respect-content t
-
-   ;; Org styling, hide markup etc.
-   org-hide-emphasis-markers t
-   org-pretty-entities t
-   org-agenda-tags-column 0
-   org-modern-star '("●" "○" "✸" "✿")
-   org-ellipsis "…")
-  (global-org-modern-mode))
+;;; Python ---
+(use-package pyvenv)
