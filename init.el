@@ -71,6 +71,7 @@
 ;;;; Packages ----
 
 (use-package emacs
+  ;; :bind (("M-o" . other-window))  ; NOTE conflicting with crux's bindings
   :custom
   ;; TAB cycle if there are only few candidates
   ;; (completion-cycle-threshold 3)
@@ -165,7 +166,7 @@
 		 ("C-K" . crux-kill-whole-line)
 		 ("C-M-<return>" . crux-smart-open-line-above)
 		 ("M-o" . crux-smart-open-line)
-		 ("C-c f" . crux-recentf-find-file)
+		 ;; ("C-c f" . crux-recentf-find-file)  ; Substituted by consult-recent-file
 		 ("C-c D" . crux-delete-current-file-and-buffer)
 		 ("C-c d" . crux-duplicate-current-line-or-region)
 		 ("C-c M-d" . crux-duplicate-and-comment-current-line-or-region)
@@ -205,7 +206,9 @@
 
 (use-package consult
   :bind (("C-x b" . consult-buffer)
-		 ("M-g i" . consult-imenu)))
+		 ("M-g i" . consult-imenu)
+		 ("C-c f" . consult-recent-file)
+		 ("C-s" . consult-line)))
 
 (use-package vterm)
 
@@ -357,21 +360,31 @@
   ;; Use experimental transient support for mu4e
   (when (require 'mu4e-transient nil 'noerror)
     (global-set-key (kbd "C-c m") #'mu4e-transient-menu))
+  ;; Custom bookmarks
+  (add-to-list 'mu4e-bookmarks
+       '( :name  "Not from lists"
+          :query "not flag:list"
+          :key   ?l))
+  (add-to-list 'mu4e-bookmarks
+       '( :name  "Big messages"
+          :query "size:100M..1000M"
+          :key   ?b))
+  ;; Other settings
   (setq mu4e-maildir "~/.mail/outlook"
-
-        mu4e-sent-folder "/Sent Items"
-        mu4e-drafts-folder "/Drafts"
-        mu4e-trash-folder "/Deleted Items"
-
         ;; set to t to avoid mail sync issues when using mbsync
         mu4e-change-filenames-when-moving t
         mu4e-update-interval (* 10 60) ; update every 10mins
         mu4e-get-mail-command "mbsync -a"
 
-        mu4e-maildir-shortcuts '(("/Inbox" . ?i)
-                                 ("/Deleted Items" . ?t)
-                                 ("/Drafts" . ?d)
-                                 ("/Sent Items" . ?s))
+		;; Maildirs
+		mu4e-sent-folder "/Sent Items"
+        mu4e-drafts-folder "/Drafts"
+        mu4e-trash-folder "/Deleted Items"
+        mu4e-maildir-shortcuts '((:maildir "/Inbox" :key ?i :name "Inbox 📫")
+								 (:maildir "/Priority" :key ?p :name "Priority 🔥")
+                                 (:maildir "/Deleted Items" :key ?t :name "Deleted 🗑️")
+                                 (:maildir "/Drafts" :key ?d :name "Drafts ✏️")
+                                 (:maildir "/Sent Items" :key ?s :name "Sent 📨"))
 
 		mu4e-attachment-dir "~/Downloads"
 
