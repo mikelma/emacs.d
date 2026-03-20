@@ -121,16 +121,20 @@
 ;;   )
 
 ;;; For packaged versions which must use `require'.
-(use-package modus-themes
+;; (use-package modus-themes
+;;   :config
+;;   ;; Add all your customizations prior to loading the themes
+;;   (setq modus-themes-italic-constructs t
+;;         modus-themes-bold-constructs nil)
+;;   ;; Load the theme of your choice.
+;;   (modus-themes-load-theme 'modus-operandi-tinted)
+;;   (define-key global-map (kbd "<f5>") #'modus-themes-toggle))
+
+(use-package doom-themes
+  :ensure t
   :config
-  ;; Add all your customizations prior to loading the themes
-  (setq modus-themes-italic-constructs t
-        modus-themes-bold-constructs nil)
-
-  ;; Load the theme of your choice.
-  (modus-themes-load-theme 'modus-operandi-tinted)
-
-  (define-key global-map (kbd "<f5>") #'modus-themes-toggle))
+  (load-theme 'doom-dracula t)
+  (doom-themes-org-config))
 
 ;; Hide minor modes
 (use-package minions
@@ -436,7 +440,7 @@
   :mode ("README\\.md\\'" . gfm-mode)
   :init (setq markdown-command "multimarkdown")
   :bind (:map markdown-mode-map
-         ("C-c C-e" . markdown-do)))
+			  ("C-c C-e" . markdown-do)))
 
 ;;; Python ---
 (use-package pyvenv)
