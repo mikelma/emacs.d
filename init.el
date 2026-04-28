@@ -11,6 +11,8 @@
 (global-auto-revert-mode t)         ; Auto-update buffer if file has changed on disk
 (setq scroll-conservatively 101)    ; Vim-like scrolling
 
+(global-unset-key (kbd "C-z"))      ; Make ctr-z do nothing
+
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 (global-set-key (kbd "M-z") 'zap-up-to-char)
 
